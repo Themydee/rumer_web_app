@@ -1,0 +1,1692 @@
+openapi: 3.0.3
+info:
+  title: Rumer API
+  description: API documentation for the Rumer livestock traceability and marketplace platform.
+  version: 1.0.0
+  contact:
+    name: Rumer Support
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Auth
+    description: Authentication and user management
+  - name: Products
+    description: Seller product management
+  - name: Inventory
+    description: Product inventory / stock management
+  - name: Marketplace
+    description: Public marketplace product listing
+  - name: Notifications
+    description: User notifications and preferences
+  - name: Admin
+    description: Admin-only operations
+  - name: Dashboard
+    description: Dashboard statistics
+  - name: Email
+    description: Email dispatch endpoint
+  - name: Bank Accounts
+    description: User bank account management
+  - name: GraphQL Fallback
+    description: Local fallback GraphQL endpoint
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        is_email_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        profile:
+          type: object
+          nullable: true
+
+    Profile:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        username:
+          type: string
+        avatar_url:
+          type: string
+        business_type:
+          type: string
+          enum: [individual, business, trader]
+          description: User role — individual (Farmer), trader (Trader/Buyer), business (Other)
+        farm_name:
+          type: string
+        farm_location:
+          type: string
+        livestock_types:
+          type: string
+        id_type:
+          type: string
+        id_number:
+          type: string
+        date_of_birth:
+          type: string
+        is_verified:
+          type: boolean
+        bvn:
+          type: string
+        gender:
+          type: string
+        state_of_origin:
+          type: string
+        id_file_url:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        description:
+          type: string
+        base_price:
+          type: number
+        product_type:
+          type: string
+        livestock_type:
+          type: string
+        unit_size:
+          type: number
+        unit_measure:
+          type: string
+        status:
+          type: string
+          enum: [draft, pending, published, sold]
+        images:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        profiles:
+          $ref: '#/components/schemas/PublicProfile'
+          nullable: true
+
+    PublicProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        farm_name:
+          type: string
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        serial_number:
+          type: string
+        weight:
+          type: number
+        age:
+          type: number
+        age_unit:
+          type: string
+        state:
+          type: string
+        lga:
+          type: string
+        town:
+          type: string
+        image_url:
+          type: string
+        status:
+          type: string
+          enum: [available, reserved, sold, archived]
+        created_at:
+          type: string
+          format: date-time
+
+    BankAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        bank_name:
+          type: string
+        account_number:
+          type: string
+        account_name:
+          type: string
+        is_primary:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    DashboardStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+        stats:
+          type: object
+          properties:
+            livestockListed:
+              type: number
+            livestockSold:
+              type: number
+            totalRevenue:
+              type: number
+            meatRevenue:
+              type: number
+            totalSales:
+              type: number
+            conversionRate:
+              type: number
+            productSold:
+              type: number
+            availableInventory:
+              type: number
+        listingSummary:
+          type: object
+          properties:
+            total:
+              type: number
+            active:
+              type: number
+            sold:
+              type: number
+            draft:
+              type: number
+            pending:
+              type: number
+        revenueChart:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              sales:
+                type: number
+              expenses:
+                type: number
+        statCharts:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: number
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum: [info, success, warning, error]
+        read:
+          type: boolean
+        link:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    NotificationSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        in_app:
+          type: boolean
+        push:
+          type: boolean
+        email:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+paths:
+  # ---------------------------- Auth ----------------------------
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in a user
+      description: Authenticates a user with email and password, creates a 7-day session, and returns a JWT token plus user profile.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Missing email or password
+        '401':
+          description: Invalid credentials
+        '429':
+          description: Too many login attempts. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      description: Creates a new user account, profile, generates an email verification OTP, sends the OTP via email, and creates a 7-day session.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  userId:
+                    type: string
+                  message:
+                    type: string
+        '400':
+          description: Missing required fields
+        '409':
+          description: Email already registered
+        '429':
+          description: Too many signup attempts. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email with OTP
+      description: Verifies a user's email using an OTP code, marks the user as verified, and issues a new session token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, email]
+              properties:
+                code:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email verified
+        '400':
+          description: Missing or invalid code
+        '404':
+          description: User not found
+        '429':
+          description: Too many attempts. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/resend-code:
+    post:
+      tags: [Auth]
+      summary: Resend verification code
+      description: Resends an email verification OTP to the provided email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic success response
+        '400':
+          description: Missing email
+        '429':
+          description: Too many requests. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+      description: Initiates a password reset by sending an OTP to the user's email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic success response
+        '400':
+          description: Missing email
+        '429':
+          description: Too many requests. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password with OTP
+      description: Resets a user's password using a valid OTP code, invalidates all existing sessions, and issues a new session token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code, newPassword]
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Missing fields or invalid code
+        '404':
+          description: User not found
+        '429':
+          description: Too many attempts. Please try again later.
+        '500':
+          description: Server error
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password
+      description: Allows an authenticated user to change their password after verifying the current password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password updated
+        '400':
+          description: Missing fields or incorrect password
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      description: Returns the currently authenticated user's account data and profile.
+      responses:
+        '200':
+          description: User data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+
+  /auth/check-username:
+    get:
+      tags: [Auth]
+      summary: Check username availability
+      description: Checks whether a username is available for the authenticated user.
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /auth/update-profile:
+    post:
+      tags: [Auth]
+      summary: Update user profile
+      description: Updates the authenticated user's profile. Only whitelisted fields are accepted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: Profile updated
+        '400':
+          description: No valid fields to update
+        '401':
+          description: Unauthorized
+        '409':
+          description: Username already taken
+        '500':
+          description: Server error
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out
+      description: Deletes the current session token.
+      responses:
+        '200':
+          description: Logged out
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /auth/upload-avatar:
+    post:
+      tags: [Auth]
+      summary: Upload avatar
+      description: Uploads an avatar image for the authenticated user to Supabase Storage.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  url:
+                    type: string
+        '400':
+          description: No file, invalid type, or file too large
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /auth/upload-product-image:
+    post:
+      tags: [Auth]
+      summary: Upload product image
+      description: Uploads a product image to Supabase Storage.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  url:
+                    type: string
+        '400':
+          description: No file, invalid type, or file too large
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /auth/upload-kyc-document:
+    post:
+      tags: [Auth]
+      summary: Upload KYC document
+      description: Uploads a KYC document to Supabase Storage.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  url:
+                    type: string
+        '400':
+          description: No file, invalid type, or file too large
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  # ---------------------------- Products ----------------------------
+  /products:
+    get:
+      tags: [Products]
+      summary: List user products
+      description: Lists all products owned by the authenticated user, optionally filtered by status.
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, published, sold]
+      responses:
+        '200':
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    post:
+      tags: [Products]
+      summary: Create product
+      description: Creates a new product listing owned by the authenticated user. Created with status `draft`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productName, basePrice]
+              properties:
+                productType:
+                  type: string
+                  enum: [livestock, processed]
+                listingType:
+                  type: string
+                  enum: [individual, bulk]
+                productName:
+                  type: string
+                livestockType:
+                  type: string
+                cutType:
+                  type: string
+                unitSize:
+                  type: number
+                unitMeasure:
+                  type: string
+                  enum: [Kg, Pack]
+                storageType:
+                  type: string
+                hsCode:
+                  type: string
+                basePrice:
+                  type: number
+                description:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Product created
+        '400':
+          description: Missing or invalid fields
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /products/setup:
+    post:
+      tags: [Products]
+      summary: Setup products table
+      description: Creates the `products` table in Supabase if it does not already exist.
+      responses:
+        '200':
+          description: Table setup result
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      summary: Get product
+      description: Retrieves a single product by ID, verifying it belongs to the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+    put:
+      tags: [Products]
+      summary: Update product
+      description: Fully updates a product owned by the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Product updated
+        '400':
+          description: Missing or invalid fields
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+    patch:
+      tags: [Products]
+      summary: Update product status
+      description: Partially updates a product's status for a product owned by the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [draft, pending, published, sold]
+      responses:
+        '200':
+          description: Status updated
+        '400':
+          description: Invalid status
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+    delete:
+      tags: [Products]
+      summary: Delete product
+      description: Deletes a product owned by the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product deleted
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  # ---------------------------- Inventory ----------------------------
+  /inventory:
+    get:
+      tags: [Inventory]
+      summary: List inventory
+      description: Lists inventory items for the authenticated user, filtered by a specific product ID.
+      parameters:
+        - in: query
+          name: productId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inventory list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  inventory:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventoryItem'
+        '400':
+          description: Missing productId
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    post:
+      tags: [Inventory]
+      summary: Create inventory item
+      description: Creates a new inventory item for a product, generating a unique serial number.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, weight, age]
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                weight:
+                  type: number
+                age:
+                  type: number
+                ageUnit:
+                  type: string
+                state:
+                  type: string
+                lga:
+                  type: string
+                town:
+                  type: string
+                imageUrl:
+                  type: string
+      responses:
+        '201':
+          description: Inventory item created
+        '400':
+          description: Missing or invalid fields
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /inventory/{id}:
+    patch:
+      tags: [Inventory]
+      summary: Update inventory item
+      description: Partially updates an inventory item owned by the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weight:
+                  type: number
+                quantity:
+                  type: number
+                status:
+                  type: string
+                  enum: [available, reserved, sold, archived]
+                state:
+                  type: string
+                lga:
+                  type: string
+                town:
+                  type: string
+                imageUrl:
+                  type: string
+      responses:
+        '200':
+          description: Inventory item updated
+        '400':
+          description: Invalid status
+        '401':
+          description: Unauthorized
+        '404':
+          description: Inventory item not found
+        '500':
+          description: Server error
+
+    delete:
+      tags: [Inventory]
+      summary: Delete inventory item
+      description: Deletes an inventory item owned by the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inventory item deleted
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  # ---------------------------- Marketplace ----------------------------
+  /marketplace/products:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace products
+      description: Publicly lists marketplace products with optional filters and search.
+      security: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, published, sold]
+            default: published
+        - in: query
+          name: productType
+          schema:
+            type: string
+            enum: [livestock, processed]
+        - in: query
+          name: livestockType
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: state
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Marketplace products list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '500':
+          description: Server error
+
+  /marketplace/products/{id}:
+    get:
+      tags: [Marketplace]
+      summary: Get marketplace product
+      description: Publicly retrieves a single marketplace product by ID.
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+  # ---------------------------- Notifications ----------------------------
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      description: Retrieves the current user's notifications (latest 100).
+      responses:
+        '200':
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+    post:
+      tags: [Notifications]
+      summary: Create notification
+      description: Creates a new notification for the current user. HTML tags are stripped from title/message to prevent XSS.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, message]
+              properties:
+                title:
+                  type: string
+                  maxLength: 500
+                message:
+                  type: string
+                  maxLength: 500
+                type:
+                  type: string
+                  enum: [info, success, warning, error]
+                  default: info
+                link:
+                  type: string
+                  maxLength: 2000
+                image:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '200':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  notification:
+                    $ref: '#/components/schemas/Notification'
+                  duplicate:
+                    type: boolean
+                    description: True if an identical notification was created recently
+        '400':
+          description: Title and message are required
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /notifications/{id}:
+    patch:
+      tags: [Notifications]
+      summary: Mark notification as read
+      description: Marks a single notification as read.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+    delete:
+      tags: [Notifications]
+      summary: Delete notification
+      description: Deletes a single notification.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /notifications/clear:
+    delete:
+      tags: [Notifications]
+      summary: Clear all notifications
+      description: Deletes all notifications for the current user.
+      responses:
+        '200':
+          description: All notifications cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /notifications/mark-all-read:
+    patch:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      description: Marks all unread notifications as read for the current user.
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Get notification preferences
+      description: Retrieves the current user's notification settings.
+      responses:
+        '200':
+          description: Notification settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  settings:
+                    $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+    put:
+      tags: [Notifications]
+      summary: Update notification preferences
+      description: Updates the current user's notification settings (upserts if not exists).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                in_app:
+                  type: boolean
+                  default: true
+                push:
+                  type: boolean
+                  default: true
+                email:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  settings:
+                    $ref: '#/components/schemas/NotificationSettings'
+        '400':
+          description: Invalid settings
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /notifications/setup:
+    post:
+      tags: [Notifications]
+      summary: Setup notifications tables
+      description: Creates the notifications and notification_settings tables. Requires admin privileges.
+      responses:
+        '200':
+          description: Tables created or already exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Admin access required
+        '500':
+          description: Server error
+
+  # ---------------------------- Admin ----------------------------
+  /admin/products:
+    get:
+      tags: [Admin]
+      summary: List admin products
+      description: Admin-only endpoint that lists products by status with owner profile information.
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, published, sold]
+            default: pending
+      responses:
+        '200':
+          description: Admin products list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Server error
+
+  /admin/products/{id}/approve:
+    patch:
+      tags: [Admin]
+      summary: Approve or reject product
+      description: Admin-only endpoint that sets a product's status to `published` or `draft`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [published, draft]
+      responses:
+        '200':
+          description: Product status updated
+        '400':
+          description: Invalid status
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+  /admin/set-admin:
+    post:
+      tags: [Admin]
+      summary: Set user as admin
+      description: Promotes a user to admin by setting `is_admin = true` on their profile.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: User promoted to admin
+        '400':
+          description: Missing email
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+
+  # ---------------------------- Dashboard ----------------------------
+  /dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard statistics
+      description: Returns aggregated dashboard statistics for the authenticated user.
+      responses:
+        '200':
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  # ---------------------------- Email ----------------------------
+  /email:
+    post:
+      tags: [Email]
+      summary: Send email
+      description: Generic email-sending endpoint that dispatches to different email templates based on `type`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [type, name, email, verificationToken, baseUrl]
+                  properties:
+                    type:
+                      type: string
+                      enum: [verification]
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    verificationToken:
+                      type: string
+                    baseUrl:
+                      type: string
+                - type: object
+                  required: [type, name, email, dashboardUrl]
+                  properties:
+                    type:
+                      type: string
+                      enum: [welcome]
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    dashboardUrl:
+                      type: string
+                - type: object
+                  required: [type, name, email, resetToken, baseUrl]
+                  properties:
+                    type:
+                      type: string
+                      enum: [password-reset]
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    resetToken:
+                      type: string
+                    baseUrl:
+                      type: string
+      responses:
+        '200':
+          description: Email sent
+        '400':
+          description: Invalid email type
+        '500':
+          description: Server error
+
+  # ---------------------------- Bank Accounts ----------------------------
+  /bank-accounts:
+    get:
+      tags: [Bank Accounts]
+      summary: List bank accounts
+      description: Lists all bank accounts belonging to the authenticated user.
+      responses:
+        '200':
+          description: Bank accounts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    post:
+      tags: [Bank Accounts]
+      summary: Add bank account
+      description: Adds a new bank account for the authenticated user. The first account is automatically marked as primary.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bankName, accountNumber, accountName]
+              properties:
+                bankName:
+                  type: string
+                accountNumber:
+                  type: string
+                  minLength: 10
+                accountName:
+                  type: string
+                accountHolder:
+                  type: string
+      responses:
+        '201':
+          description: Bank account added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  account:
+                    $ref: '#/components/schemas/BankAccount'
+        '400':
+          description: Missing or invalid fields
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  # ---------------------------- GraphQL Fallback ----------------------------
+  /graphql-fallback:
+    post:
+      tags: [GraphQL Fallback]
+      summary: GraphQL fallback
+      description: Local fallback GraphQL endpoint used when no WordPress CMS endpoint is configured.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operationName:
+                  type: string
+                  enum:
+                    - GetWhyRumerWorksPost
+                    - GetFaqsPosts
+                    - GetTestimonialPosts
+                    - GetPost
+      responses:
+        '200':
+          description: Empty but structurally valid GraphQL response
