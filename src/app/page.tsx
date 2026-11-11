@@ -139,8 +139,8 @@ const page = async () => {
 	return (
 		<AppLayoutB className='mx-auto flex flex-col w-full lg:p-0 lg:pb-32'>
 			<div className='relative'>
-				<VCHeroSection frontViewComponentPost={FrontViewComponentPost!} />
-				<VCInputsApp introRumerPost={IntroRumerPost!} />
+				<VCHeroSection frontViewComponentPost={FrontViewComponentPost} />
+				<VCInputsApp introRumerPost={IntroRumerPost} />
 				<SolutionForAgricultureSection />
 				<VCHowRummerWorks data={WhyRumerWorks!} />
 			<VCWhatMakesRummerDifferent />

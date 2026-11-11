@@ -22,32 +22,107 @@ if (typeof window !== "undefined") {
 }
 
 interface VCHeroSectionProps {
-	frontViewComponentPost: FrontViewComponentContent;
+	frontViewComponentPost?: FrontViewComponentContent | null;
 }
+
+const defaultHeroImage = (src: string, alt: string): FrontImageNode => ({
+	node: { sourceUrl: src, altText: alt, mediaDetails: { sizes: [] } },
+});
+
+const defaultFrontViewData: FrontViewComponentContent = {
+	id: "default-hero",
+	title: "Rumer",
+	frontViewComponent: {
+		leftSection: {
+			description:
+				"Rumer connects verified producers, buyers, processors, and exporters through a secure, data-driven livestock ecosystem built on provenance, traceability, verification and secure transactions.",
+			tag: "Verified Livestock Marketplace",
+			titleBreaks: {
+				one: "Source Verified",
+				two: "Livestock With",
+				three: "Complete",
+				four: "Traceability",
+			},
+			joinEarlyAccessButton: {
+				title: "Get Started",
+				url: "/signup",
+			},
+		},
+		rightSide: {
+			imageViewOne: {
+				image: defaultHeroImage("/home/hero1img.jpg", "Main livestock image"),
+				tag: {
+					name: "Verified Livestock",
+					icon: defaultHeroImage("/home/rumer-green-short.png", "Verified"),
+				},
+			},
+			imageViewTwo: {
+				tag: "Escrow Protected",
+				image: defaultHeroImage("/home/hero2img.jpg", "Secondary livestock image"),
+			},
+		},
+		additonalCard: {
+			name: "Sokoto Gudali",
+			title: "Recent Trade",
+			amount: 850000,
+			dateAndCategory: "Verified • Kaduna Cluster",
+			image: defaultHeroImage("/home/rumer-green-short.png", "Trade"),
+		},
+	},
+};
 
 export default function VCHeroSection({
 	frontViewComponentPost,
 }: VCHeroSectionProps) {
-	// Destructure the data
-	const {
-		title: mainTitle,
-		frontViewComponent: {
-			leftSection: {
-				description,
-				tag,
-				titleBreaks: { one, two, three, four },
-				joinEarlyAccessButton: { title: buttonTitle, url: buttonUrl },
-			},
-			rightSide: { imageViewOne, imageViewTwo },
-			additonalCard: {
-				name: cardName,
-				title: cardTitle,
-				amount: cardAmount,
-				dateAndCategory: cardDateCategory,
-				image: cardImage,
-			},
+	const fallback = defaultFrontViewData.frontViewComponent;
+	const fvc = frontViewComponentPost?.frontViewComponent;
+	const left = fvc?.leftSection;
+	const right = fvc?.rightSide;
+	const card = fvc?.additonalCard;
+
+	const mainTitle = frontViewComponentPost?.title || defaultFrontViewData.title;
+	const description = left?.description || fallback.leftSection.description;
+	const tag = left?.tag || fallback.leftSection.tag;
+	const one = left?.titleBreaks?.one || fallback.leftSection.titleBreaks.one;
+	const two = left?.titleBreaks?.two || fallback.leftSection.titleBreaks.two;
+	const three = left?.titleBreaks?.three || fallback.leftSection.titleBreaks.three;
+	const four = left?.titleBreaks?.four || fallback.leftSection.titleBreaks.four;
+	const buttonTitle =
+		left?.joinEarlyAccessButton?.title ||
+		fallback.leftSection.joinEarlyAccessButton.title;
+	const buttonUrl =
+		left?.joinEarlyAccessButton?.url ||
+		fallback.leftSection.joinEarlyAccessButton.url;
+
+	const imageViewOne = {
+		image: right?.imageViewOne?.image?.node?.sourceUrl
+			? right.imageViewOne.image
+			: fallback.rightSide.imageViewOne.image,
+		tag: {
+			name:
+				right?.imageViewOne?.tag?.name ||
+				fallback.rightSide.imageViewOne.tag.name,
+			icon: right?.imageViewOne?.tag?.icon?.node?.sourceUrl
+				? right.imageViewOne.tag.icon
+				: fallback.rightSide.imageViewOne.tag.icon,
 		},
-	} = frontViewComponentPost;
+	};
+
+	const imageViewTwo = {
+		tag: right?.imageViewTwo?.tag || fallback.rightSide.imageViewTwo.tag,
+		image: right?.imageViewTwo?.image?.node?.sourceUrl
+			? right.imageViewTwo.image
+			: fallback.rightSide.imageViewTwo.image,
+	};
+
+	const cardName = card?.name || fallback.additonalCard.name;
+	const cardTitle = card?.title || fallback.additonalCard.title;
+	const cardAmount = Number(card?.amount) || fallback.additonalCard.amount;
+	const cardDateCategory =
+		card?.dateAndCategory || fallback.additonalCard.dateAndCategory;
+	const cardImage = card?.image?.node?.sourceUrl
+		? card.image
+		: fallback.additonalCard.image;
 
 	// Format currency
 	const formatCurrency = (amount: number): string => {

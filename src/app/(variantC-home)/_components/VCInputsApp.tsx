@@ -33,14 +33,90 @@ if (typeof window !== "undefined") {
 }
 
 interface VCInputsAppProps {
-	introRumerPost: FeRumerContentType;
+	introRumerPost?: FeRumerContentType | null;
 }
 
+const emptyInputImage = (src = "", alt = "") => ({
+	node: {
+		sourceUrl: src,
+		altText: alt,
+		mediaDetails: { sizes: [] },
+	},
+});
+
+const defaultIntroRumerData: IntroducingRumerType = {
+	tagName: "Introducing Rumer",
+	titleBrea: "Built to Fix",
+	title: "Fragmented Livestock Trade",
+	description:
+		"Rumer brings verified producers, on-ground quality assessors, and serious buyers together into a single traceable marketplace.",
+	leftCard: {
+		cardTag: "The Challenge",
+		title: "Livestock trade lacks visibility, quality assurance, and trust.",
+		description:
+			"Buyers risk inconsistent quality while verified farmers struggle to reach reliable markets and secure payment.",
+	},
+	rightCard: {
+		logoImage: emptyInputImage("/home/rummer-logo.png", "Rumer"),
+		boxOne: {
+			title: "Producers",
+			logo1: emptyInputImage(),
+			logo2: emptyInputImage(),
+		},
+		boxTwo: {
+			title: "Verification",
+			logo1: emptyInputImage(),
+			logo2: emptyInputImage(),
+		},
+		boxThree: {
+			title: "Buyers",
+			logo1: emptyInputImage(),
+			logo2: emptyInputImage(),
+			logo3: emptyInputImage(),
+		},
+	},
+};
+
 const VCInputsApp = ({ introRumerPost }: VCInputsAppProps) => {
-	// Extract data from props
-	const { introducingRumer } = introRumerPost;
-	const { leftCard, rightCard, description, tagName, title, titleBrea } =
-		introducingRumer;
+	// Extract data from props with safe defaults when CMS data is unavailable
+	const intro = introRumerPost?.introducingRumer;
+	const leftCard = {
+		cardTag: intro?.leftCard?.cardTag || defaultIntroRumerData.leftCard.cardTag,
+		title: intro?.leftCard?.title || defaultIntroRumerData.leftCard.title,
+		description:
+			intro?.leftCard?.description || defaultIntroRumerData.leftCard.description,
+	};
+	const rightCard = {
+		logoImage: intro?.rightCard?.logoImage?.node?.sourceUrl
+			? intro.rightCard.logoImage
+			: defaultIntroRumerData.rightCard.logoImage,
+		boxOne: {
+			title:
+				intro?.rightCard?.boxOne?.title ||
+				defaultIntroRumerData.rightCard.boxOne.title,
+			logo1: intro?.rightCard?.boxOne?.logo1 || defaultIntroRumerData.rightCard.boxOne.logo1,
+			logo2: intro?.rightCard?.boxOne?.logo2 || defaultIntroRumerData.rightCard.boxOne.logo2,
+		},
+		boxTwo: {
+			title:
+				intro?.rightCard?.boxTwo?.title ||
+				defaultIntroRumerData.rightCard.boxTwo.title,
+			logo1: intro?.rightCard?.boxTwo?.logo1 || defaultIntroRumerData.rightCard.boxTwo.logo1,
+			logo2: intro?.rightCard?.boxTwo?.logo2 || defaultIntroRumerData.rightCard.boxTwo.logo2,
+		},
+		boxThree: {
+			title:
+				intro?.rightCard?.boxThree?.title ||
+				defaultIntroRumerData.rightCard.boxThree.title,
+			logo1: intro?.rightCard?.boxThree?.logo1 || defaultIntroRumerData.rightCard.boxThree.logo1,
+			logo2: intro?.rightCard?.boxThree?.logo2 || defaultIntroRumerData.rightCard.boxThree.logo2,
+			logo3: intro?.rightCard?.boxThree?.logo3 || defaultIntroRumerData.rightCard.boxThree.logo3,
+		},
+	};
+	const description = intro?.description || defaultIntroRumerData.description;
+	const tagName = intro?.tagName || defaultIntroRumerData.tagName;
+	const title = intro?.title || defaultIntroRumerData.title;
+	const titleBrea = intro?.titleBrea || defaultIntroRumerData.titleBrea;
 
 	// Refs for GSAP animations
 	const sectionRef = useRef<HTMLDivElement>(null);
@@ -57,13 +133,13 @@ const VCInputsApp = ({ introRumerPost }: VCInputsAppProps) => {
 	const iconsRefs = useRef<HTMLDivElement[]>([]);
 
 	// Get image URLs for the logo
-	const logoImage = rightCard.logoImage.node;
-	const producerLogo1 = rightCard.boxOne.logo1.node;
-	const producerLogo2 = rightCard.boxOne.logo2.node;
-	const verificationLogo1 = rightCard.boxTwo.logo1.node;
-	const verificationLogo2 = rightCard.boxTwo.logo2.node;
-	const buyerLogo1 = rightCard.boxThree.logo1.node;
-	const buyerLogo2 = rightCard.boxThree.logo2.node;
+	const logoImage = rightCard.logoImage?.node;
+	const producerLogo1 = rightCard.boxOne.logo1?.node;
+	const producerLogo2 = rightCard.boxOne.logo2?.node;
+	const verificationLogo1 = rightCard.boxTwo.logo1?.node;
+	const verificationLogo2 = rightCard.boxTwo.logo2?.node;
+	const buyerLogo1 = rightCard.boxThree.logo1?.node;
+	const buyerLogo2 = rightCard.boxThree.logo2?.node;
 	const buyerLogo3 = rightCard.boxThree.logo3?.node; // Optional
 
 	useEffect(() => {

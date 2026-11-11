@@ -34,7 +34,10 @@ const VCTestimonial = ({ testimonialsData }: VCTestimonialProps) => {
 	const [isHovering, setIsHovering] = useState(false);
 
 	const testimonials = useMemo(
-		() => testimonialsData ?? defaultTestimonials,
+		() =>
+			testimonialsData && testimonialsData.length > 0
+				? testimonialsData
+				: defaultTestimonials,
 		[testimonialsData],
 	);
 

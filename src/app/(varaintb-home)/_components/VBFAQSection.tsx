@@ -38,7 +38,7 @@ const defaultFaqs: FAQPostType[] = [
 
 const VBFAQSection = ({ Faqs }: VBFAQSectionProps) => {
 	const [openIndex, setOpenIndex] = useState<number | null>(null);
-	const faqList = Faqs ?? defaultFaqs;
+	const faqList = Faqs && Faqs.length > 0 ? Faqs : defaultFaqs;
 
 	const toggleFAQ = (index: number) => {
 		setOpenIndex(openIndex === index ? null : index);
