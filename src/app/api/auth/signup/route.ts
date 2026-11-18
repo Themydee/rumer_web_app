@@ -56,7 +56,10 @@ export async function POST(request: Request) {
 		if (userError) {
 			console.error("User creation error:", userError);
 			return NextResponse.json(
-				{ error: "Failed to create account" },
+				{
+					error: "Failed to create account",
+					details: userError.message || userError,
+				},
 				{ status: 500 }
 			);
 		}
@@ -104,10 +107,13 @@ export async function POST(request: Request) {
 			userId: user.id,
 			message: "Account created. Please verify your email.",
 		});
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Signup error:", error);
 		return NextResponse.json(
-			{ error: "Internal server error" },
+			{
+				error: "Internal server error",
+				details: error?.message || String(error),
+			},
 			{ status: 500 }
 		);
 	}
